@@ -1,23 +1,18 @@
 use std::collections::HashSet;
+use std::io::stdin;
+
 type BlokusGrid = Vec<Vec<char>>;
 type BlokusPoint = (isize, isize);
 
 fn create_grid() -> BlokusGrid {
-    let mut array = vec![vec!['.'; 10]; 10];
-    array[0][0] = 'x';
-    array[4][3] = 'x';
-    array[5][3] = 'x';
-    array[6][3] = 'x';
-    array[4][2] = 'x';
-    array[4][1] = 'x';
-    array
+    vec![vec!['.'; 10]; 10]
 }
-fn create_piece() -> BlokusGrid {
-    let mut array = vec![vec!['.'; 1]; 3];
-    array[0][0] = 'x';
-    array[1][0] = 'x';
-    array[2][0] = 'x';
-    array
+
+fn parse_grid(multi_line_string: &str) -> BlokusGrid {
+    multi_line_string
+        .lines()
+        .map(|line| line.chars().collect())
+        .collect()
 }
 
 fn print_grid(grid: &BlokusGrid) {
@@ -34,6 +29,18 @@ fn print_grid(grid: &BlokusGrid) {
         }
         println!();
     }
+}
+
+fn print_move(grid: &BlokusGrid, piece: &BlokusGrid, gc: &BlokusPoint, pc: &BlokusPoint) {
+    let mut grid_clone = grid.clone();
+    for i in 0..piece.len() {
+        for j in 0..piece[0].len() {
+            if piece[i][j] == 'x' && gc.0 >= 0 && gc.1 >= 0 {
+                grid_clone[(gc.0+(i as isize)-pc.0) as usize][(gc.1+(j as isize)-pc.1) as usize] = 'o';
+            }
+        }
+    }
+    print_grid(&grid_clone);
 }
 
 fn get_cell(grid: &BlokusGrid, i: isize, j: isize) -> &char {
@@ -113,11 +120,21 @@ fn rotate(grid: &BlokusGrid, mut degrees: i32) -> BlokusGrid {
 
 type BlokusPlacement = (BlokusGrid, BlokusPoint, BlokusPoint);
 
-fn get_moves(grid: &BlokusGrid, piece: &BlokusGrid) -> Vec<BlokusPlacement> {
+fn get_moves(grid: &BlokusGrid, piece: &BlokusGrid, turn: &i32) -> Vec<BlokusPlacement> {
     let mut moves = HashSet::new();
 
     // For each corner
-    let grid_corners = detect_corners(grid);
+    let grid_corners = if turn == &0 {
+        vec![
+            (0, 0),
+            (grid.len() as isize, 0),
+            (0, grid[0].len() as isize),
+            (grid.len() as isize, grid[0].len() as isize),
+        ]
+    }
+    else {
+        detect_corners(grid)
+    };
     // For rotation
     for degree in vec![0, 90, 180, 270] {
         let rotated_piece = rotate(piece, degree);
@@ -132,11 +149,9 @@ fn get_moves(grid: &BlokusGrid, piece: &BlokusGrid) -> Vec<BlokusPlacement> {
                     continue;
                 }
                 if gc.0 - pc.0 < 0 || gc.0 + (rotated_piece.len() as isize - pc.0 - 1) >= grid.len() as isize {
-                    println!("Skip vertical ({}, {}) <-> ({}, {}) {} - {} < {} || {} >= {}", gc.0, gc.1, pc.0, pc.1, degree, gc.0 - pc.0, 0, gc.0 + (piece.len() as isize - pc.0), grid.len());
                     continue;
                 }
                 if gc.1 - pc.1 < 0 || gc.1 + (rotated_piece[0].len() as isize - pc.1 - 1) >= grid[0].len() as isize {
-                    println!("Skip horizontal ({}, {}) <-> ({}, {}) {}", gc.0, gc.1, pc.0, pc.1, degree);
                     continue;
                 }
                 // Check collisions
@@ -167,8 +182,8 @@ fn detect_marks(grid: &BlokusGrid) -> Vec<BlokusPoint> {
 #[cfg(test)]
 mod tests {
     use crate::collides;
-    use crate::BlokusGrid;
     use crate::detect_marks;
+    use crate::parse_grid;
 
     #[test]
     fn it_works() {
@@ -265,11 +280,14 @@ mod tests {
         assert_eq!(detect_marks(&piece), vec![(0, 0), (1, 0), (2, 0), (2, 1), (2, 2)]);
     }
 
-    fn parse_grid(multi_line_string: &str) -> BlokusGrid {
-        multi_line_string
-            .lines()
-            .map(|line| line.chars().collect())
-            .collect()
+    #[test]
+    fn fails5() {
+        let piece = parse_grid(
+            "xxx\n\
+             x..\n\
+             x.."
+        );
+        assert_eq!(detect_marks(&piece), vec![(0, 0), (0, 1), (0, 2), (1, 0), (2, 0)]);
     }
 }
 
@@ -296,38 +314,83 @@ fn collides(grid: &BlokusGrid, piece: &BlokusGrid, gc: BlokusPoint, pc: BlokusPo
 }
 
 fn main() {
-    let my_grid = create_grid();
-    print_grid(&my_grid);
+    let mut grid = create_grid();
+    let mut pieces = Vec::new();
+    pieces.push(parse_grid(
+        "x\n\
+         x\n\
+         x"
+    ));
+    pieces.push(parse_grid(
+        "xxx"
+    ));
+    pieces.push(parse_grid(
+        "xxx\n\
+         x..\n\
+         x.."
+    ));
 
-    for (ci, cj) in detect_corners(&my_grid) {
-        println!("Corner: ({}, {})", ci, cj);
-    }
-    
-    let my_grid_rotate = rotate(&my_grid, 180);
-    println!("Rotated");
-    print_grid(&my_grid_rotate);
+    let mut turn = 0;
+    loop {
+        // Choose piece
+        println!("Pieces:");
+        for (i, piece) in pieces.iter().enumerate() {
+            println!("[{}]", i);
+            print_grid(&piece);
+        }
+        println!("Choose piece: ");
+        let mut line = String::new();
+        stdin().read_line(&mut line).expect("Failed to read piece choice");
+        let line_to_parse = line.trim();
+        if line_to_parse == "q" {
+            println!("Quitting!");
+            break;
+        }
+        let piece_choice = line_to_parse.parse::<usize>().expect("Input is not an index");
+        let chosen_piece = &pieces[piece_choice];
 
-    let piece = create_piece();
-    print_grid(&piece);
-    for (ci, cj) in detect_corners(&piece) {
-        println!("Corner: ({}, {})", ci, cj);
-    }
-    
-    let moves = get_moves(&my_grid, &piece);
-    println!("Moves: {}", moves.len());
-    for (piece, gc, pc) in moves {
-        let mut grid_clone = my_grid.clone();
-        println!("Placement point: grid=({}, {}) piece=({}, {})", gc.0, gc.1, pc.0, pc.1);
-        println!("Piece");
-        print_grid(&piece);
-        println!("Board");
-        for i in 0..piece.len() {
-            for j in 0..piece[0].len() {
-                if piece[i][j] == 'x' && gc.0 >= 0 && gc.1 >= 0 {
-                    grid_clone[(gc.0+(i as isize)-pc.0) as usize][(gc.1+(j as isize)-pc.1) as usize] = 'o';
+        // Choose orientation
+        let moves = get_moves(&grid, &chosen_piece, &turn);
+        println!("Moves: {}", moves.len());
+        for (i, (piece, gc, pc)) in moves.iter().enumerate() {
+            println!("[{}]", i);
+            print_move(&grid, &piece, gc, pc);
+        }
+        println!("Choose move: ");
+        let mut line = String::new();
+        stdin().read_line(&mut line).expect("Failed to read move choice");
+        let line_to_parse = line.trim();
+        if line_to_parse == "b" {
+            continue;
+        }
+        if line_to_parse == "q" {
+            println!("Quitting!");
+            break;
+        }
+        let move_choice = line_to_parse.parse::<usize>().expect("Input is not an index");
+        let chosen_move = &moves[move_choice];
+
+        // Play
+        let move_piece = &chosen_move.0;
+        let gc = chosen_move.1;
+        let pc = chosen_move.2;
+        for i in 0..move_piece.len() {
+            for j in 0..move_piece[0].len() {
+                if move_piece[i][j] == 'x' && gc.0 >= 0 && gc.1 >= 0 {
+                    grid[(gc.0+(i as isize)-pc.0) as usize][(gc.1+(j as isize)-pc.1) as usize] = 'x';
                 }
             }
         }
-        print_grid(&grid_clone);
+        pieces.remove(piece_choice);
+        if pieces.len() == 0 {
+            println!("Used all pieces!");
+            break;
+        }
+
+        println!("Grid:");
+        print_grid(&grid);
+        turn += 1;
     }
+    println!("Final grid:");
+    print_grid(&grid);
 }
