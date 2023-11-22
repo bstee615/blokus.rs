@@ -1,6 +1,6 @@
 use std::io::stdin;
-mod blokus;
-use crate::blokus::game::*;
+extern crate blokus;
+use blokus::blokus::game::*;
 
 fn print_grid(grid: &BlokusGrid) {
     // Display the array for demonstration

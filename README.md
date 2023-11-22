@@ -4,7 +4,7 @@ Currently supports single-player only, with limited rules and termination condit
 
 Example of the output:
 ```
-$ cargo run
+$ cargo run --bin console
     Finished dev [unoptimized + debuginfo] target(s) in 0.09s
      Running `target/debug/blokus`
 Pieces:
