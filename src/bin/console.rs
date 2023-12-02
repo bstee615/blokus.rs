@@ -1,29 +1,29 @@
 use std::io::stdin;
 extern crate blokus;
-use blokus::blokus::game::*;
+use blokus::blokus::game::{*};
 
-fn print_grid(grid: &BlokusGrid) {
+fn print_grid(grid: &Grid) {
     // Display the array for demonstration
     print!("  ");
-    for (j, _) in grid[0].iter().enumerate() {
+    for j in 0..grid.width() {
         print!("{} ", j);
     }
     println!();
-    for (i, row) in grid.iter().enumerate() {
+    for i in 0..grid.height() {
         print!("{} ", i);
-        for &cell in row.iter() {
-            print!("{} ", cell);
+        for j in 0..grid.width() {
+            print!("{} ", grid.cell(i, j));
         }
         println!();
     }
 }
 
-fn print_move(grid: &BlokusGrid, piece: &BlokusGrid, gc: &BlokusPoint, pc: &BlokusPoint) {
+fn print_move(grid: &Grid, game_move: &Move) {
     let mut grid_clone = grid.clone();
-    for i in 0..piece.len() {
-        for j in 0..piece[0].len() {
-            if piece[i][j] == 'x' && gc.0 >= 0 && gc.1 >= 0 {
-                grid_clone[(gc.0+(i as isize)-pc.0) as usize][(gc.1+(j as isize)-pc.1) as usize] = 'o';
+    for i in 0..grid.height() {
+        for j in 0..grid.width() {
+            if game_move.piece.cell(i, j) == 'x' && game_move.grid_corner.row >= 0 && game_move.grid_corner.col >= 0 {
+                grid_clone.set_cell(game_move.grid_corner.row+(i as isize)-game_move.piece_mark.row, game_move.grid_corner.col+(j as isize)-game_move.piece_mark.col, 'o')
             }
         }
     }
@@ -31,7 +31,7 @@ fn print_move(grid: &BlokusGrid, piece: &BlokusGrid, gc: &BlokusPoint, pc: &Blok
 }
 
 fn main() {
-    let mut grid = parse_grid(
+    let mut grid = Grid::parse(
         "..........\n\
          ..........\n\
          ..........\n\
@@ -44,15 +44,15 @@ fn main() {
          .........."
     );
     let mut pieces = Vec::new();
-    pieces.push(parse_grid(
+    pieces.push(Grid::parse(
         "x\n\
          x\n\
          x"
     ));
-    pieces.push(parse_grid(
+    pieces.push(Grid::parse(
         "xxx"
     ));
-    pieces.push(parse_grid(
+    pieces.push(Grid::parse(
         "xxx\n\
          x..\n\
          x.."
@@ -78,11 +78,11 @@ fn main() {
         let chosen_piece = &pieces[piece_choice];
 
         // Choose orientation
-        let moves = get_moves(&grid, &chosen_piece, &turn);
+        let moves = get_moves(&grid, &chosen_piece, turn);
         println!("Moves: {}", moves.len());
-        for (i, (piece, gc, pc)) in moves.iter().enumerate() {
+        for (i, m) in moves.iter().enumerate() {
             println!("[{}]", i);
-            print_move(&grid, &piece, gc, pc);
+            print_move(&grid, &m);
         }
         println!("Choose move: ");
         let mut line = String::new();
@@ -99,13 +99,13 @@ fn main() {
         let chosen_move = &moves[move_choice];
 
         // Play
-        let move_piece = &chosen_move.0;
-        let gc = chosen_move.1;
-        let pc = chosen_move.2;
-        for i in 0..move_piece.len() {
-            for j in 0..move_piece[0].len() {
-                if move_piece[i][j] == 'x' && gc.0 >= 0 && gc.1 >= 0 {
-                    grid[(gc.0+(i as isize)-pc.0) as usize][(gc.1+(j as isize)-pc.1) as usize] = 'x';
+        let move_piece = &chosen_move.piece;
+        let grid_corner = chosen_move.grid_corner;
+        let piece_mark = chosen_move.piece_mark;
+        for i in 0..move_piece.height() {
+            for j in 0..move_piece.width() {
+                if move_piece.cell(i, j) == 'x' && grid_corner.row >= 0 && grid_corner.col >= 0 {
+                    grid.set_cell(grid_corner.row+(i as isize)-piece_mark.row, grid_corner.col+(j as isize)-piece_mark.col, 'x')
                 }
             }
         }
