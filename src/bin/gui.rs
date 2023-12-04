@@ -15,6 +15,7 @@ const GRID_SIZE: usize = 10;
 const SQUARE_SIZE: f32 = 30.0;
 const PAD_SIZE: f32 = 5.0;
 const SQUARE_PLUS_PAD_SIZE: f32 = SQUARE_SIZE + PAD_SIZE;
+const BOARD_OFFSET: Vec2 = Vec2::new(0.0, 0.0);
 
 fn setup(
     mut commands: Commands,
@@ -25,8 +26,8 @@ fn setup(
     // Create the grid
     commands.spawn(SpriteBundle {
         transform: Transform::from_xyz(
-            0.0,
-            0.0,
+            BOARD_OFFSET.x,
+            BOARD_OFFSET.y,
             0.0,
         ),
         sprite: Sprite {
