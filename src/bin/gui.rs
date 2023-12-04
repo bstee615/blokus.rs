@@ -112,25 +112,25 @@ fn setup(
     }
 
     // Load and display Blokus pieces (placeholder logic)
+    add_piece(&mut commands, 0.0, -200.0, 0);
+    add_piece(&mut commands, 50.0, -200.0, 1);
+}
+
+fn add_piece(commands: &mut Commands, x: f32, y: f32, id: usize) {
     let sprite = Sprite {
         color: Color::rgb(1.0, 0.0, 0.0),
         custom_size: Some(Vec2::new(SQUARE_SIZE, SQUARE_SIZE)),
         ..default()
     };
-    let transform = Transform::from_xyz(0.0, -200.0, 0.0);
-    // commands.spawn(GamePiece {
-    //     id: 0,
-    // });
+    let transform = Transform::from_xyz(x, y, 0.0);
     commands.spawn(SpriteBundle {
         sprite,
         transform,
         ..Default::default()
     }).insert(GamePiece {
-        id: 0,
+        id: id,
         valid: true,
     });
-
-    // Add more game setup logic here if needed
 }
 
 #[derive(Debug, Resource)]
