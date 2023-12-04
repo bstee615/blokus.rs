@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use blokus::blokus::game::Grid;
+use blokus::blokus::game::{Grid, Point};
 
 fn main() {
     App::new()
@@ -216,39 +216,65 @@ fn piece_hover(
                 let world_pos = mouse_to_game(Vec2::new(window.width() as f32, window.height() as f32), cursor_pos);
 
                 // Place the piece at the grid square's position
-                if let Some(aligned_pos) = try_align(world_pos) {
-                    commands.entity(selected_entity).insert(Transform {
-                        translation: aligned_pos.extend(0.0),
-                        ..selected_piece_transform.clone()
-                    });
+                let world_game_pos = to_grid(world_pos);
+                if in_bounds(world_game_pos) { // TODO: if the whole piece is in bounds
+                    let old_game_pos = to_grid(selected_piece_transform.translation.truncate());
+                    let mut new_pos = to_game(world_game_pos);
+                    // Translate to center of sprite
+                    let num_squares = 1;
+                    let piece_size = SQUARE_PLUS_PAD_SIZE * num_squares as f32;
+                    new_pos.x = new_pos.x + (0.5 * (piece_size));
+                    new_pos.y = new_pos.y - (0.5 * (piece_size));
+                    selected_piece_transform.translation = new_pos.extend(0.0);
                 }
             }
         }
     }
 }
 
-fn try_align(world_pos: Vec2) -> Option<Vec2> {    
-    // Reverse grid offset
-    let grid_offset = Vec2::new(0.0, 0.0);
-    let mut world_pos = world_pos - grid_offset;
+fn in_bounds(pos: Point) -> bool {
+    return pos.row >= 0 && pos.col >= 0 &&
+        pos.row < GRID_SQUARES && pos.col < GRID_SQUARES
+}
 
-    // Check bounds
-    let offset = Vec2::new(0.0, 0.0);
-    let grid = Vec2::new(GRID_SIZE as f32 * SQUARE_PLUS_PAD_SIZE, GRID_SIZE as f32 * SQUARE_PLUS_PAD_SIZE);
-    let top_left = offset - grid/2.0;
-    let bottom_right = offset + grid/2.0;
-    return if world_pos.x < top_left.x ||
-        world_pos.x >= bottom_right.x ||
-        world_pos.y < top_left.y ||
-        world_pos.y >= bottom_right.y {
-        None
+fn to_grid(mut game_pos: Vec2) -> Point {
+    game_pos.y = -game_pos.y;
+    let grid_pos = (game_pos + (BOARD_SIZE/2.0) - BOARD_OFFSET) / SQUARE_PLUS_PAD_SIZE;
+    return Point::new(grid_pos.y as isize, grid_pos.x as isize);
+}
+
+fn to_game(grid_pos: Point) -> Vec2 {
+    let mut grid_pos = BOARD_OFFSET + (Vec2::new(grid_pos.col as f32, grid_pos.row as f32) * SQUARE_PLUS_PAD_SIZE) - (BOARD_SIZE/2.0);
+    grid_pos.y = -grid_pos.y;
+    return grid_pos;
+}
+
+#[cfg(test)]
+mod coordinate_tests {
+    use bevy::math::Vec2;
+    use blokus::blokus::game::Point;
+
+    use crate::{SQUARE_PLUS_PAD_SIZE, to_grid, GRID_SQUARES, to_game};
+
+    #[test]
+    fn test_to_grid_q4() {
+        let game_pos = Vec2::new(SQUARE_PLUS_PAD_SIZE * 3.0, SQUARE_PLUS_PAD_SIZE * 2.0);
+        let grid_pos = to_grid(game_pos);
+        assert_eq!(grid_pos, Point { col: 3 + GRID_SQUARES/2, row: GRID_SQUARES/2 - 2 });
     }
-    else {
-        // Floor on X, Ceiling on Y
-        world_pos.x = ((world_pos.x / SQUARE_PLUS_PAD_SIZE).floor() + 0.5) * SQUARE_PLUS_PAD_SIZE;
-        world_pos.y = ((world_pos.y / SQUARE_PLUS_PAD_SIZE).ceil() - 0.5) * SQUARE_PLUS_PAD_SIZE;
-    
-        Some(world_pos)
+
+    #[test]
+    fn test_to_game_q2() {
+        let grid_pos = Point { col: 1, row: 2 };
+        let game_pos = to_game(grid_pos);
+        assert_eq!(game_pos, Vec2::new(-SQUARE_PLUS_PAD_SIZE*((GRID_SQUARES/2 - 1) as f32), SQUARE_PLUS_PAD_SIZE*((GRID_SQUARES/2 - 2) as f32)));
+    }
+
+    #[test]
+    fn test_to_game_q4() {
+        let grid_pos = Point { col: GRID_SQUARES/2 + 3, row: GRID_SQUARES/2 + 2 };
+        let game_pos = to_game(grid_pos);
+        assert_eq!(game_pos, Vec2::new(SQUARE_PLUS_PAD_SIZE*3.0, -SQUARE_PLUS_PAD_SIZE*2.0));
     }
 }
 

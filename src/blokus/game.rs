@@ -54,8 +54,8 @@ pub struct Move {
 
 #[derive(Hash, PartialEq, Eq, Debug, Clone, Copy)]
 pub struct Point {
-    pub row: isize,
     pub col: isize,
+    pub row: isize,
 }
 
 impl Point {
