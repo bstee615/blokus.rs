@@ -206,7 +206,7 @@ fn piece_hover(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     selected_piece: ResMut<SelectedPiece>,
-    mut piece_query: Query<(&mut Transform, &mut GamePiece)>,
+    mut piece_query: Query<(&mut Transform, &mut GamePiece, &mut Sprite)>,
     game_logic: Res<GameLogic>,
 ) {
     let Ok(window) = window_query.get_single() else {
@@ -215,12 +215,13 @@ fn piece_hover(
 
     if let Some(cursor_pos) = window.cursor_position() {
         if let Some(selected_entity) = selected_piece.entity {
-            if let Ok((mut selected_piece_transform, mut selected_game_piece)) = piece_query.get_mut(selected_entity) {
+            if let Ok((mut selected_piece_transform, mut selected_game_piece, mut sprite)) = piece_query.get_mut(selected_entity) {
                 let world_pos = mouse_to_game(Vec2::new(window.width() as f32, window.height() as f32), cursor_pos);
 
                 // Place the piece at the grid square's position
                 let world_game_pos = to_grid(world_pos);
                 if in_bounds(world_game_pos) { // TODO: if the whole piece is in bounds
+                    // Update position
                     let old_game_pos = to_grid(selected_piece_transform.translation.truncate());
                     let mut new_pos = to_game(world_game_pos);
                     // Translate to center of sprite
@@ -229,7 +230,9 @@ fn piece_hover(
                     new_pos.x = new_pos.x + (0.5 * (piece_size));
                     new_pos.y = new_pos.y - (0.5 * (piece_size));
                     selected_piece_transform.translation = new_pos.extend(0.0);
-                    let position_valid = if in_bounds(old_game_pos) {
+
+                    // Update validity
+                    selected_game_piece.valid = if in_bounds(old_game_pos) {
                         // check if different than old position
                         // if different, check validity and update validity
                         if old_game_pos != world_game_pos {
@@ -241,7 +244,11 @@ fn piece_hover(
                     } else {
                         false
                     };
-                    selected_game_piece.valid = position_valid;
+                    if selected_game_piece.valid {
+                        sprite.color = Color::rgb(1.0, 0.0, 0.0);
+                    } else {
+                        sprite.color = Color::rgb(0.0, 0.0, 1.0);
+                    }
                 }
             }
         }
