@@ -15,6 +15,7 @@ const GRID_SIZE: usize = 10;
 const SQUARE_SIZE: f32 = 30.0;
 const PAD_SIZE: f32 = 5.0;
 const SQUARE_PLUS_PAD_SIZE: f32 = SQUARE_SIZE + PAD_SIZE;
+const BOARD_SIZE: f32 = GRID_SIZE * SQUARE_PLUS_PAD_SIZE;
 const BOARD_OFFSET: Vec2 = Vec2::new(0.0, 0.0);
 
 fn setup(
@@ -32,7 +33,7 @@ fn setup(
         ),
         sprite: Sprite {
             color: Color::rgb(0.25, 0.25, 0.25),
-            custom_size: Some(Vec2::new(GRID_SIZE as f32 * SQUARE_PLUS_PAD_SIZE + (PAD_SIZE * 2.0), GRID_SIZE as f32 * SQUARE_PLUS_PAD_SIZE + (PAD_SIZE * 2.0))),
+            custom_size: Some(Vec2::new(BOARD_SIZE + (PAD_SIZE * 2.0), BOARD_SIZE + (PAD_SIZE * 2.0))),
             ..default()
         },
         ..Default::default()
@@ -41,8 +42,8 @@ fn setup(
         for j in 0..GRID_SIZE {
             commands.spawn(SpriteBundle {
                 transform: Transform::from_xyz(
-                    i as f32 * SQUARE_PLUS_PAD_SIZE - (GRID_SIZE as f32 * SQUARE_PLUS_PAD_SIZE / 2.0) + (SQUARE_PLUS_PAD_SIZE / 2.0),
-                    j as f32 * SQUARE_PLUS_PAD_SIZE - (GRID_SIZE as f32 * SQUARE_PLUS_PAD_SIZE / 2.0) + (SQUARE_PLUS_PAD_SIZE / 2.0),
+                    i as f32 * SQUARE_PLUS_PAD_SIZE - (BOARD_SIZE / 2.0) + (SQUARE_PLUS_PAD_SIZE / 2.0),
+                    j as f32 * SQUARE_PLUS_PAD_SIZE - (BOARD_SIZE / 2.0) + (SQUARE_PLUS_PAD_SIZE / 2.0),
                     0.0,
                 ),
                 sprite: Sprite {
