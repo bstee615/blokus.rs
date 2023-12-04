@@ -156,6 +156,7 @@ fn piece_hover(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     selected_piece: ResMut<SelectedPiece>,
+    mut piece_query: Query<(&mut Transform, &mut GamePiece)>,
     game_logic: Res<GameLogic>,
 ) {
     let Ok(window) = window_query.get_single() else {
@@ -166,7 +167,7 @@ fn piece_hover(
         let size: Vec2 = Vec2::new(window.width() as f32, window.height() as f32);
         let world_pos = (cursor_pos - size / 2.0) * Vec2::new(1.0, -1.0);
         if let Some(selected_entity) = selected_piece.entity {
-            if let Ok(selected_piece_transform) = piece_query.get(selected_entity) {
+            if let Ok((mut selected_piece_transform, mut selected_game_piece)) = piece_query.get_mut(selected_entity) {
 
                 // Place the piece at the grid square's position
                 if let Some(aligned_pos) = try_align(world_pos) {
