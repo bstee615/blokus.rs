@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
+use blokus::blokus::game::Grid;
 
 fn main() {
     App::new()
@@ -8,6 +9,16 @@ fn main() {
         // .add_systems(Update, (piece_selection, piece_placement))
         .add_systems(Update, (piece_selection, piece_hover))
         .insert_resource(SelectedPiece { entity: None })
+        .insert_resource(GameLogic {grid: Grid::parse("..........\n\
+        ..........\n\
+        ..........\n\
+        ..........\n\
+        ..........\n\
+        ..........\n\
+        ..........\n\
+        ..........\n\
+        ..........\n\
+        ..........")})
         .run();
 }
 
@@ -78,6 +89,11 @@ fn setup(
     // Add more game setup logic here if needed
 }
 
+#[derive(Debug, Resource)]
+struct GameLogic {
+    grid: Grid
+}
+
 // Assuming you have a struct to represent a game piece
 #[derive(Component)]
 struct GamePiece {
@@ -140,7 +156,7 @@ fn piece_hover(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     selected_piece: ResMut<SelectedPiece>,
-    piece_query: Query<&Transform, With<GamePiece>>,
+    game_logic: Res<GameLogic>,
 ) {
     let Ok(window) = window_query.get_single() else {
         return;
