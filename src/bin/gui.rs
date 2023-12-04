@@ -11,7 +11,8 @@ fn main() {
         .run();
 }
 
-const GRID_SIZE: usize = 10;
+const GRID_SQUARES: isize = 10;
+const GRID_SIZE: f32 = GRID_SQUARES as f32;
 const SQUARE_SIZE: f32 = 30.0;
 const PAD_SIZE: f32 = 5.0;
 const SQUARE_PLUS_PAD_SIZE: f32 = SQUARE_SIZE + PAD_SIZE;
@@ -38,8 +39,8 @@ fn setup(
         },
         ..Default::default()
     });
-    for i in 0..GRID_SIZE {
-        for j in 0..GRID_SIZE {
+    for i in 0..GRID_SQUARES {
+        for j in 0..GRID_SQUARES {
             commands.spawn(SpriteBundle {
                 transform: Transform::from_xyz(
                     i as f32 * SQUARE_PLUS_PAD_SIZE - (BOARD_SIZE / 2.0) + (SQUARE_PLUS_PAD_SIZE / 2.0),
