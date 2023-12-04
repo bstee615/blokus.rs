@@ -127,7 +127,7 @@ fn setup(
         ..Default::default()
     }).insert(GamePiece {
         id: 0,
-        valid: false,
+        valid: true,
     });
 
     // Add more game setup logic here if needed
