@@ -22,6 +22,48 @@ fn main() {
         .run();
 }
 
+/*
+There are three coordinate systems:
+
+1. Window coordinates:
+  - Sprite positions are at the center of the sprite
+
+          +y
+           ^
+           |
+           |
+ -x <----(0,0)----> +x
+           |
+           |
+           v
+          -y
+
+2. Mouse coordinates
+
+            -y
+    (0,0)    ^
+             |
+             |
+   -x <------+------> +x
+             |
+             |
+             v
+            +y
+
+3. Game board coordinates
+
+           -row
+    (0,0)    ^
+             |
+             |
+ -col <------+------> +col
+             |
+             |
+             v
+           +row
+
+*/
+
 const GRID_SQUARES: isize = 10;
 const GRID_SIZE: f32 = GRID_SQUARES as f32;
 const SQUARE_SIZE: f32 = 30.0;
@@ -123,15 +165,13 @@ fn piece_selection(
     if mouse_input.just_pressed(MouseButton::Left) {
         let mut newly_selected_entity = None;
         if let Some(cursor_pos) = window.cursor_position() {
-            let size = Vec2::new(window.width() as f32, window.height() as f32);
-            let world_pos = (cursor_pos - size / 2.0) * Vec2::new(1.0, -1.0);
+            let world_pos = mouse_to_game(Vec2::new(window.width() as f32, window.height() as f32), cursor_pos);
 
             for (entity, piece, sprite, transform) in query.iter() {
                 let mut is_selected = false;
                 if let Some(selected_entity) = selected_piece.entity {
                     is_selected = selected_entity.index() == entity.index();
                 }
-                println!("Selection region: {} transform: ({}, {}) id: {} entity: {}", world_pos, transform.translation.x, transform.translation.y, piece.id, entity.index());
                 // Calculate the size of the piece based on its properties
                 let piece_size = sprite.custom_size.unwrap(); // Placeholder
 
@@ -147,9 +187,16 @@ fn piece_selection(
                 }
             }
         }
-        println!("Selected: {}", newly_selected_entity.is_some());
         selected_piece.entity = newly_selected_entity;
     }
+}
+
+fn mouse_to_game(window_size: Vec2, cursor_pos: Vec2) -> Vec2 {
+    (cursor_pos - window_size / 2.0) * Vec2::new(1.0, -1.0)
+}
+
+fn game_to_mouse(window_size: Vec2, game_pos: Vec2) -> Vec2 {
+    (game_pos / Vec2::new(1.0, -1.0)) + (window_size / 2.0)
 }
 
 fn piece_hover(
@@ -164,10 +211,9 @@ fn piece_hover(
     };
 
     if let Some(cursor_pos) = window.cursor_position() {
-        let size: Vec2 = Vec2::new(window.width() as f32, window.height() as f32);
-        let world_pos = (cursor_pos - size / 2.0) * Vec2::new(1.0, -1.0);
         if let Some(selected_entity) = selected_piece.entity {
             if let Ok((mut selected_piece_transform, mut selected_game_piece)) = piece_query.get_mut(selected_entity) {
+                let world_pos = mouse_to_game(Vec2::new(window.width() as f32, window.height() as f32), cursor_pos);
 
                 // Place the piece at the grid square's position
                 if let Some(aligned_pos) = try_align(world_pos) {
