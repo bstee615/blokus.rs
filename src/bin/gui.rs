@@ -155,11 +155,28 @@ struct SelectedPiece {
     entity: Option<Entity>,
 }
 
+fn print_grid(grid: &Grid) {
+    // Display the array for demonstration
+    print!("  ");
+    for j in 0..grid.width() {
+        print!("{} ", j);
+    }
+    println!();
+    for i in 0..grid.height() {
+        print!("{} ", i);
+        for j in 0..grid.width() {
+            print!("{} ", grid.cell(i, j));
+        }
+        println!();
+    }
+}
+
 fn piece_selection(
     mouse_input: Res<Input<MouseButton>>,
     query: Query<(Entity, &GamePiece, &Sprite, &Transform)>,
     window_query: Query<&Window, With<PrimaryWindow>>,
     mut selected_piece: ResMut<SelectedPiece>,
+    mut game_logic: ResMut<GameLogic>,
 ) {
     let Ok(window) = window_query.get_single() else {
         return;
@@ -187,6 +204,25 @@ fn piece_selection(
                         newly_selected_entity = Some(entity);
                         println!("Selected piece id: {}", piece.id);
                         break;
+                }
+            }
+        }
+        // Place piece on board
+        if newly_selected_entity.is_none() {
+            if let Some(selected_entity) = selected_piece.entity {
+                if let Ok((_, piece, _, transform)) = query.get(selected_entity) {
+                    let grid_pos = to_grid(transform.translation.truncate());
+                    if piece.valid {
+                        println!("Placed at: {:?}", grid_pos);
+                        // TODO: place entire piece
+                        game_logic.grid.set_cell(grid_pos.row, grid_pos.col, 'x');
+                        println!("Updated grid:");
+                        print_grid(&game_logic.grid);
+                    }
+                    else {
+                        println!("Prevented invalid placement: {:?}", grid_pos);
+                        newly_selected_entity = selected_piece.entity
+                    }
                 }
             }
         }

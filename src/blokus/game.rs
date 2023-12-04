@@ -192,10 +192,8 @@ pub fn collides(grid: &Grid, piece: &Grid, gc: Point, pc: Point) -> bool {
                     Point::new(1, 0),
                     Point::new(0, -1)
                     ] {
-                    // if grid.cell(gc.row + i - pc.row + offset.row, gc.col + j - pc.col + offset.col) == 'x' {
                     let offset_point = grid_point + offset;
                     if grid.cell(offset_point.row, offset_point.col) == 'x' {
-                        println!("collides: {:?}", offset_point);
                         return true;
                     }
                 }
