@@ -1,6 +1,7 @@
 // Refactored 2023/12/01 https://chat.openai.com/share/60539e8b-c1e3-4637-9074-23905b8e6d41
 
 use std::collections::HashSet;
+use std::ops;
 
 #[derive(Clone, Debug, PartialEq, Hash, Eq)]
 pub struct Grid {
@@ -61,6 +62,20 @@ pub struct Point {
 impl Point {
     pub fn new(row: isize, col: isize) -> Self {
         Point { row, col }
+    }
+}
+
+impl ops::Add<Point> for Point {
+    type Output = Self;
+    fn add(self, _rhs: Self) -> Self {
+        Point { row: self.row + _rhs.row, col: self.col + _rhs.col }
+    }
+}
+
+impl ops::Sub<Point> for Point {
+    type Output = Self;
+    fn sub(self, _rhs: Self) -> Self {
+        Point { row: self.row - _rhs.row, col: self.col - _rhs.col }
     }
 }
 
