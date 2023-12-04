@@ -2,7 +2,29 @@
 Implementation of the Blokus board game as an exercise to learn Rust.
 Currently supports single-player only, with limited rules and termination conditions.
 
-Example of the output:
+# TODOs
+
+- [ ] Handle pieces bigger than one cell
+- [ ] Handle returning pieces to the hand after deselecting
+- [ ] Handle multiple players
+- [ ] Allow rotating pieces
+- [ ] Abolish globals -- configurable board size, pixel size
+
+# Usage
+
+Run tests:
+
+```
+$ cargo test
+```
+
+How to run GUI:
+
+```
+$ cargo run --bin gui
+```
+
+Example of the CLI output:
 ```
 $ cargo run --bin console
     Finished dev [unoptimized + debuginfo] target(s) in 0.09s
