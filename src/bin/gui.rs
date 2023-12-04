@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use blokus::blokus::game::{Grid, Point};
+use blokus::blokus::game::collides;
 
 fn main() {
     App::new()
@@ -126,6 +127,7 @@ fn setup(
         ..Default::default()
     }).insert(GamePiece {
         id: 0,
+        valid: false,
     });
 
     // Add more game setup logic here if needed
@@ -140,6 +142,7 @@ struct GameLogic {
 #[derive(Component)]
 struct GamePiece {
     id: usize,
+    valid: bool,
 }
 
 // Component to identify selectable pieces
@@ -226,6 +229,19 @@ fn piece_hover(
                     new_pos.x = new_pos.x + (0.5 * (piece_size));
                     new_pos.y = new_pos.y - (0.5 * (piece_size));
                     selected_piece_transform.translation = new_pos.extend(0.0);
+                    let position_valid = if in_bounds(old_game_pos) {
+                        // check if different than old position
+                        // if different, check validity and update validity
+                        if old_game_pos != world_game_pos {
+                            is_piece_placement_valid(world_game_pos, &game_logic.grid)
+                        }
+                        else {
+                            selected_game_piece.valid
+                        }
+                    } else {
+                        false
+                    };
+                    selected_game_piece.valid = position_valid;
                 }
             }
         }
@@ -235,6 +251,21 @@ fn piece_hover(
 fn in_bounds(pos: Point) -> bool {
     return pos.row >= 0 && pos.col >= 0 &&
         pos.row < GRID_SQUARES && pos.col < GRID_SQUARES
+}
+
+fn is_piece_placement_valid(grid_position: Point,
+    grid: &Grid,
+    // game_move: &Move,
+) -> bool {
+    // let piece_point = Point::new(1, 1);
+    // let piece = Grid::parse("x..\n\
+    // x..\n\
+    // xxx");
+    
+    let piece_point = Point::new(0, 0);
+    let piece = Grid::parse("x");
+
+    !collides(grid, &piece, grid_position, piece_point)
 }
 
 fn to_grid(mut game_pos: Vec2) -> Point {

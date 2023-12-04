@@ -178,11 +178,13 @@ fn detect_marks(grid: &Grid) -> Vec<Point> {
     marks
 }
 
-fn collides(grid: &Grid, piece: &Grid, gc: Point, pc: Point) -> bool {
+pub fn collides(grid: &Grid, piece: &Grid, gc: Point, pc: Point) -> bool {
     for i in 0..piece.height() {
         for j in 0..piece.width() {
             let cell = piece.cell(i, j);
+            let ij = Point::new(i, j);
             if cell == 'x' {
+                let grid_point = gc + ij - pc;
                 for &offset in &[
                     Point::new(0, 0),
                     Point::new(-1, 0),
@@ -190,12 +192,15 @@ fn collides(grid: &Grid, piece: &Grid, gc: Point, pc: Point) -> bool {
                     Point::new(1, 0),
                     Point::new(0, -1)
                     ] {
-                    if grid.cell(gc.row + i - pc.row + offset.row, gc.col + j - pc.col + offset.col) == 'x' {
-                        println!("collides: ({}, {})", gc.row + i - pc.row + offset.row, gc.col + j - pc.col + offset.col);
+                    // if grid.cell(gc.row + i - pc.row + offset.row, gc.col + j - pc.col + offset.col) == 'x' {
+                    let offset_point = grid_point + offset;
+                    if grid.cell(offset_point.row, offset_point.col) == 'x' {
+                        println!("collides: {:?}", offset_point);
                         return true;
                     }
                 }
-                assert_ne!(grid.cell(gc.row + i - pc.row, gc.col + j - pc.col), '-');
+                // TODO: bounds check, make grid.cell return Option
+                assert_ne!(grid.cell(grid_point.row, grid_point.col), '-');
             }
         }
     }
