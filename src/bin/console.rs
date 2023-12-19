@@ -1,6 +1,5 @@
 use std::io::stdin;
 extern crate blokus;
-use bevy::audio::PlaybackSettings;
 use blokus::blokus::game::{*};
 
 fn print_grid(grid: &Grid) {
