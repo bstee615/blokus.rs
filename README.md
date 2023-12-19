@@ -4,9 +4,14 @@ Currently supports single-player only, with limited rules and termination condit
 
 # TODOs
 
+Main game
+- [ ] Make the pieces in hand like the actual game
+- [ ] Add bot to play against
+- [x] Handle multiple players
+
+GUI
 - [ ] Handle pieces bigger than one cell
 - [ ] Handle returning pieces to the hand after deselecting
-- [ ] Handle multiple players
 - [ ] Allow rotating pieces
 - [ ] Abolish globals -- configurable board size, pixel size
 
