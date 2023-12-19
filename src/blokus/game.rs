@@ -126,7 +126,7 @@ fn detect_corners(grid: &Grid) -> Vec<Point> {
     let mut points = Vec::new();
     for i in 0..grid.height() {
         for j in 0..grid.width() {
-            if grid.cell(i, j) == 'x' {
+            if grid.cell(i, j) != '.' && grid.cell(i, j) != '-' {
                 points.extend(get_corners(grid, i, j));
             }
         }
@@ -170,7 +170,7 @@ fn detect_marks(grid: &Grid) -> Vec<Point> {
     let mut marks = Vec::new();
     for i in 0..grid.height() {
         for j in 0..grid.width() {
-            if grid.cell(i, j) == 'x' {
+            if grid.cell(i, j) != '.' && grid.cell(i, j) != '-' {
                 marks.push(Point::new(i, j));
             }
         }
@@ -183,7 +183,7 @@ pub fn collides(grid: &Grid, piece: &Grid, gc: Point, pc: Point) -> bool {
         for j in 0..piece.width() {
             let cell = piece.cell(i, j);
             let ij = Point::new(i, j);
-            if cell == 'x' {
+            if cell != '.' && cell != '-' {
                 let grid_point = gc + ij - pc;
                 for &offset in &[
                     Point::new(0, 0),
@@ -193,7 +193,7 @@ pub fn collides(grid: &Grid, piece: &Grid, gc: Point, pc: Point) -> bool {
                     Point::new(0, -1)
                     ] {
                     let offset_point = grid_point + offset;
-                    if grid.cell(offset_point.row, offset_point.col) == 'x' {
+                    if grid.cell(offset_point.row, offset_point.col) != '.' && grid.cell(offset_point.row, offset_point.col) != '-' {
                         return true;
                     }
                 }
